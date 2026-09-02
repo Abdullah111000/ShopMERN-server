@@ -97,19 +97,48 @@ router.get("/single/:id", verifyToken, async (req, res) => {
 
 
 
-router.patch("/update/:id", verifyToken, async (req, res) => {
+router.patch("/update/:id", verifyToken, upload.fields([{ name: "image" }]), async (req, res) => {
     try {
         const { role } = req
         if (role !== "admin") { return res.status(401).json({ message: "Unauthorized to access this feature.", isError: true }) }
 
         const { id } = req.params
+        const product = await Products.findOne({ id })
+        if (!product) { return res.status(404).json({ message: "Product not found", isError: true }) }
 
         const { name, price, stock, category, description } = req.body
         const productData = { name, price, stock, category, description }
 
-        const updatedProduct = await Products.findOneAndUpdate({ id }, productData, { returnDocument: "after" })
-        if (!updatedProduct) { return res.status(404).json({ message: "Product not found", isError: true }) }
+        if (req.files && req.files["image"] && req.files["image"][0]) {
+            if (product.imagePublicId) {
+                await cloudinary.uploader.destroy(product.imagePublicId)
+            }
 
+            let imageURL = product.imageURL
+            let imagePublicId = product.imagePublicId
+
+            await new Promise((resolve, reject) => {
+                const uploadStream = cloudinary.uploader.upload_stream(
+                    { folder: "ShopMERN/products/images/" },
+                    (error, result) => {
+                        if (error) {
+                            return reject(error)
+                        }
+
+                        imageURL = result.secure_url
+                        imagePublicId = result.public_id
+                        resolve()
+                    }
+                )
+
+                uploadStream.end(req.files["image"][0].buffer)
+            })
+
+            productData.imageURL = imageURL
+            productData.imagePublicId = imagePublicId
+        }
+
+        const updatedProduct = await Products.findOneAndUpdate({ id }, productData, { returnDocument: "after" })
         res.status(200).json({ message: "Product updated successfully", product: updatedProduct })
     } catch (error) {
         console.error(error)

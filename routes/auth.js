@@ -44,7 +44,7 @@ router.post("/login", async (req, res) => {
         if (match) {
             const { uid, role } = user
 
-            const token = jwt.sign({ uid, role}, process.env.JWT_SECRET, { expiresIn: "1d" })
+            const token = jwt.sign({ uid, role }, process.env.JWT_SECRET, { expiresIn: "1d" })
             res.status(200).json({ message: "Login successful", token, user })
         } else {
             return res.status(401).json({ message: "Invalid email or password", isError: true })
@@ -173,68 +173,4 @@ module.exports = router
 
 
 
-
-
-// // change password
-// router.patch("/change-password", verifyToken, async (req, res) => {
-//     try {
-//         const { uid } = req
-//         const user = await Users.findOne({ uid })
-//         if (!user) { return res.status(401).json({ message: "User not found", isError: true }) }
-
-//         const { oldPassword, newPassword } = req.body
-//         if (!oldPassword || !newPassword) { return res.status(401).json({ message: "Password is required", isError: true }) }
-
-//         const isPasswordMatch = await bcrypt.compare(oldPassword, user.password)
-//         if (!isPasswordMatch) { return res.status(401).json({ message: "Invalid old password", isError: true }) }
-
-//         const hashedPassword = await bcrypt.hash(newPassword, 10)
-
-//         const updatedUser = await Users.findOneAndUpdate({ uid }, { password: hashedPassword }, { returnDocument: "after" })
-//         res.status(200).json({ message: "Password changed successfully", updatedUser })
-
-//     } catch (error) {
-//         console.error(error)
-//         res.status(500).json({ message: "Internal server error", isError: true })
-//     }
-// })
-
-
-// // change email
-// router.patch("/change-email", verifyToken, async (req, res) => {
-//     try {
-//         const { uid } = req
-//         const user = await Users.findOne({ uid })
-//         if (!user) { return res.status(401).json({ message: "User not found", isError: true }) }
-
-//         const { email } = req.body
-//         if (!email) { return res.status(401).json({ message: "Email is required", isError: true }) }
-
-//         const updatedUser = await Users.findOneAndUpdate({ uid }, { email }, { returnDocument: "after" })
-//         res.status(200).json({ message: "Email changed successfully", updatedUser })
-
-//     } catch (error) {
-//         console.error(error)
-//         res.status(500).json({ message: "Internal server error", isError: true })
-//     }
-// })
-
-// // reset password
-// router.post("/reset-password", async (req, res) => {
-//     try {
-//         const { email, password } = req.body
-//         if (!email || !password) { return res.status(401).json({ message: "Email and password are required", isError: true }) }
-
-//         const user = await Users.findOne({ email })
-//         if (!user) { return res.status(404).json({ message: "User not found", isError: true }) }
-
-//         const hashedPassword = await bcrypt.hash(password, 10)
-
-//         const updatedUser = await Users.findOneAndUpdate({ email }, { password: hashedPassword }, { returnDocument: "after" })
-//         res.status(200).json({ message: "Password reset successfully", updatedUser })
-//     } catch (error) {
-//         console.error(error)
-//         res.status(500).json({ message: "Internal server error", isError: true })
-//     }
-// })
 
